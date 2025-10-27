@@ -1,0 +1,9 @@
+# Railway'de ignore edilecek dosyalar
+*.md
+!README.md
+.vscode/
+.idea/
+__pycache__/
+*.pyc
+.env.example
+

@@ -43,6 +43,26 @@ from .serializers import (
 
 
 @api_view(["GET"])
+def health_check(request):
+    """Health check endpoint for Railway and monitoring"""
+    from django.db import connection
+    try:
+        # Test database connection
+        connection.ensure_connection()
+        return Response({
+            "status": "healthy",
+            "database": "connected",
+            "django": "ok"
+        })
+    except Exception as e:
+        return Response({
+            "status": "unhealthy",
+            "database": "disconnected",
+            "error": str(e)
+        }, status=503)
+
+
+@api_view(["GET"])
 def dashboard_data(request):
     today = timezone.localdate()
 
