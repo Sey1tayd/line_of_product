@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Makine Detay</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100">
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur px-4 py-3 flex items-center justify-between">
+    <a href="/" class="text-[12px] text-slate-400 hover:text-indigo-300">← Geri</a>
+    <div class="text-lg font-semibold">Makine Detay</div>
+    <div class="text-right text-sm leading-tight" id="userBox"></div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+    <section id="headerInfo" class="bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-[11px] uppercase tracking-widest text-slate-500">Makine</div>
+          <div class="text-xl font-semibold" id="machineName">—</div>
+          <div class="text-[12px] text-slate-400" id="machineShort">—</div>
+        </div>
+        <div class="text-right">
+          <div class="text-[11px] uppercase tracking-widest text-slate-500">Bugün</div>
+          <div class="text-base font-semibold" id="todayTotal">—</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid md:grid-cols-2 gap-4">
+      <div class="bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-4">
+        <div class="text-[11px] uppercase tracking-widest text-slate-500 mb-2">Takım Tipleri</div>
+        <ul id="toolTypes" class="space-y-1 text-[13px]"></ul>
+      </div>
+      <div class="bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-4">
+        <div class="text-[11px] uppercase tracking-widest text-slate-500 mb-2">Son Takım Değişimleri</div>
+        <ul id="lastBatches" class="space-y-2 text-[13px]"></ul>
+      </div>
+    </section>
+
+    <section class="grid md:grid-cols-2 gap-4">
+      <div class="bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-4">
+        <div class="text-[11px] uppercase tracking-widest text-slate-500 mb-2">Günlük Üretimler</div>
+        <ul id="recentDaily" class="space-y-1 text-[13px]"></ul>
+      </div>
+      <div class="bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-4">
+        <div class="text-[11px] uppercase tracking-widest text-slate-500 mb-2">Çalışma Oturumları</div>
+        <ul id="recentSessions" class="space-y-1 text-[13px]"></ul>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    function getMachineIdFromPath() {
+      const parts = window.location.pathname.split('/').filter(Boolean);
+      const idx = parts.indexOf('machine');
+      if (idx >= 0 && parts[idx+1]) return parseInt(parts[idx+1], 10);
+      return null;
+    }
+
+    async function fetchJSON(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    }
+
+    function renderHeader(payload) {
+      document.getElementById('machineName').textContent = payload.machine.name;
+      document.getElementById('machineShort').textContent = payload.machine.short_name + ' • Sıra ' + payload.machine.order_in_line;
+      document.getElementById('todayTotal').textContent = payload.today_total !== null ? (payload.today_total + ' adet') : '—';
+    }
+
+    function renderToolTypes(list) {
+      const ul = document.getElementById('toolTypes');
+      ul.innerHTML = list.map(t => `<li class="flex items-center justify-between"><span>${t.name}</span><span class="text-[11px] ${t.is_active ? 'text-emerald-400' : 'text-slate-500'}">${t.is_active ? 'aktif' : 'pasif'}</span></li>`).join('');
+    }
+
+    function renderBatches(list) {
+      const ul = document.getElementById('lastBatches');
+      ul.innerHTML = list.map(b => {
+      const when = new Date(b.timestamp).toLocaleString('tr-TR', {day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit'});
+        const teams = b.items.map(i => i.tool_type_name).join(' + ');
+        const counter = b.current_counter ?? '—';
+        const who = b.changed_by_username || '—';
+        return `<li class="flex items-center justify-between"><span>${teams}</span><span class="text-slate-400 text-[12px]">Sayaç ${counter} • ${when} • ${who}</span></li>`;
+      }).join('');
+    }
+
+    function renderDaily(list) {
+      const ul = document.getElementById('recentDaily');
+      ul.innerHTML = list.map(d => {
+        const who = d.recorded_by_username || '—';
+        const when = new Date(d.created_at).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+        return `<li class="flex items-center justify-between"><span>${d.date} • ${when}</span><span class="text-slate-200">${d.total_count} adet <span class="text-slate-500 text-[12px] font-normal">${who}</span></span></li>`;
+      }).join('');
+    }
+
+    function renderSessions(list) {
+      const ul = document.getElementById('recentSessions');
+      ul.innerHTML = list.map(s => {
+        const range = new Date(s.start_time).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) + '–' + new Date(s.end_time).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+        const qty = (s.produced_count ?? null) !== null ? (s.produced_count + ' adet') : '—';
+        return `<li class="flex items-center justify-between"><span>${s.user_username} • ${range}</span><span class="text-slate-400 text-[12px]">${qty}</span></li>`;
+      }).join('');
+    }
+
+    async function loadUserBox() {
+      try {
+        const u = await fetchJSON('/api/whoami/');
+        if (!u.is_authenticated) { window.location.href = '/login/'; return; }
+        const el = document.getElementById('userBox');
+        el.innerHTML = `<div class="text-slate-200 font-medium">Kullanıcı: <span class="text-indigo-400">${u.username}</span></div>`;
+      } catch {}
+    }
+
+    async function loadDetail() {
+      const id = getMachineIdFromPath();
+      if (!id) return;
+      try {
+        const payload = await fetchJSON(`/api/machines/${id}/`);
+        renderHeader(payload);
+        renderToolTypes(payload.tool_types);
+        renderBatches(payload.last_batches);
+        renderDaily(payload.recent_daily);
+        renderSessions(payload.recent_sessions);
+      } catch (e) {
+        console.error('Makine detay alınamadı', e);
+      }
+    }
+
+    loadUserBox();
+    loadDetail();
+  </script>
+</body>
+</html>
+
+

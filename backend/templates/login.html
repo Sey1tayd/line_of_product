@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Giriş Yap</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100">
+  <div class="w-full max-w-sm bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
+    <div class="text-center mb-4">
+      <div class="text-[11px] uppercase tracking-widest text-slate-500 font-medium">Üretim Takip Sistemi</div>
+      <div class="text-lg font-semibold">Giriş</div>
+    </div>
+    <form class="space-y-3 text-[13px]" onsubmit="return false;">
+      <div>
+        <label class="block text-slate-400 mb-1">Kullanıcı Adı</label>
+        <input id="username" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none" />
+      </div>
+      <div>
+        <label class="block text-slate-400 mb-1">Şifre</label>
+        <input id="password" type="password" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none" />
+      </div>
+      <div id="loginError" class="hidden text-[12px] text-rose-400"></div>
+      <button id="loginBtn" class="w-full rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[13px] font-semibold text-white py-2 text-center">Giriş Yap</button>
+    </form>
+  </div>
+
+  <script>
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const csrftoken = getCookie('csrftoken') || '';
+      try {
+        const res = await fetch('/api/login/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+          body: JSON.stringify({ username, password })
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({detail: 'Giriş başarısız'}));
+          throw new Error(data.detail || 'Giriş başarısız');
+        }
+        window.location.href = '/';
+      } catch (e) {
+        const el = document.getElementById('loginError');
+        el.textContent = e.message;
+        el.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
+
+

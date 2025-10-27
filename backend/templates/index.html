@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Üretim Hattı Paneli</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    /* Tailwind theme mini ayarları */
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            panelBg: "#0f172a",       // ana arkaplan
+            panelCard: "#1e2537",     // kart koyusu
+            panelSurface: "#f9fafb",  // içerik yüzeyi (açık)
+          },
+          boxShadow: {
+            card: "0 24px 60px rgba(0,0,0,0.8)",
+          },
+          borderRadius: {
+            xl2: "1rem",
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="h-full min-h-screen flex flex-col bg-slate-950 text-slate-100">
+
+  <!-- ÜST NAVBAR -->
+  <header class="flex items-center justify-between border-b border-slate-800 bg-slate-900/60 backdrop-blur px-4 py-3">
+    <!-- Sol taraf: başlık -->
+    <div class="flex flex-col">
+      <span class="text-[11px] uppercase tracking-widest text-slate-500 font-medium">
+        Üretim Takip Sistemi
+      </span>
+      <div class="flex items-center gap-2">
+        <span class="text-lg font-semibold text-slate-100 leading-tight">
+          Canlı Durum
+        </span>
+        <span class="inline-flex items-center rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-medium px-2 py-[2px] ring-1 ring-emerald-500/40">
+          Aktif
+        </span>
+      </div>
+    </div>
+
+    <!-- Orta: arama kutusu -->
+    <div class="hidden md:flex items-center gap-2 flex-1 max-w-xl mx-4">
+      <div class="flex items-center bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 w-full text-[13px] text-slate-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z" />
+        </svg>
+        <input
+          class="bg-transparent outline-none placeholder-slate-500 w-full"
+          placeholder="Makine, sayaç, kullanıcı ara..."
+        />
+      </div>
+
+      <!-- Filtre, Bildirim vb icon butonları -->
+      <button class="rounded-lg bg-slate-800/70 ring-1 ring-slate-700 p-2 hover:ring-indigo-500/40 hover:text-indigo-300 transition" title="Filtrele">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.382a1 1 0 01-.293.707l-5.414 5.414a1 1 0 00-.293.707V19l-4 2v-7.79a1 1 0 00-.293-.707L3.293 7.09A1 1 0 013 6.382V4z" />
+        </svg>
+      </button>
+      <button class="relative rounded-lg bg-slate-800/70 ring-1 ring-slate-700 p-2 hover:ring-indigo-500/40 hover:text-indigo-300 transition" title="Bildirimler">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C8.67 6.165 7 8.388 7 11v3.159c0 .538-.214 1.055-.595 1.436L5 17h5m5 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        <span class="absolute -top-1 -right-1 bg-red-500 text-[9px] font-semibold rounded-full px-[5px] py-[1px] ring-2 ring-slate-900">
+          2
+        </span>
+      </button>
+    </div>
+
+    <!-- Sağ taraf: kullanıcı -->
+    <div class="text-right text-[12px] leading-tight" id="userBox"></div>
+  </header>
+
+  <div class="flex flex-1 min-h-0">
+
+    <!-- SOL SİDEBAR -->
+    <aside class="hidden md:flex flex-col w-60 bg-slate-900/80 border-r border-slate-800 text-slate-200">
+      <div class="px-4 py-4 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+        Menü
+      </div>
+
+      <nav class="flex-1 px-2 space-y-1 text-[13px]">
+        <a class="flex items-center justify-between rounded-lg px-3 py-2 bg-slate-800/50 ring-1 ring-slate-700 text-slate-100 font-medium">
+          <span class="flex items-center gap-2">
+            <span class="inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+            Üretim Hattı
+          </span>
+          <span class="text-[10px] text-slate-400 font-normal">Canlı</span>
+        </a>
+
+        <a id="adminSessionsLink" href="/sessions/" class="hidden flex items-center justify-between rounded-lg px-3 py-2 hover:bg-slate-800/30 hover:ring-1 hover:ring-slate-700 transition">
+          <span class="flex items-center gap-2">
+            <span class="inline-block h-2 w-2 rounded-full bg-slate-500"></span>
+            Kullanıcı Oturumları
+          </span>
+          <span class="text-[10px] text-slate-500 font-normal">Bugün</span>
+        </a>
+      </nav>
+
+      <div class="mt-auto p-4 text-[11px] text-slate-500 border-t border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="h-7 w-7 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-semibold text-slate-200">
+            SA
+          </div>
+          <div class="flex flex-col leading-tight">
+            <span class="text-slate-300 font-medium text-[12px]">seyit.aydin</span>
+            <span class="text-slate-500 text-[10px]">Vardiya Sorumlusu</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ANA İÇERİK -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-900/20">
+      <!-- üst başlık satırı -->
+      <section class="px-4 pt-5 pb-3 border-b border-slate-800">
+        <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div class="text-[11px] uppercase tracking-widest text-slate-500 font-medium mb-1">
+              Üretim Hattı
+            </div>
+            <div class="flex items-center gap-3 flex-wrap">
+              <h1 class="text-xl font-semibold text-slate-100 leading-tight">
+                Bugünün Durumu
+              </h1>
+              <span class="text-[11px] font-medium text-slate-400 bg-slate-800/70 ring-1 ring-slate-700 rounded px-2 py-[2px]">
+                27.10.2025
+              </span>
+            </div>
+            <p class="text-[12px] text-slate-500 mt-2 leading-relaxed max-w-xl">
+              Aşağıda listelenen her kart; makinenin son takım değişimlerini,
+              sayaç değerini ve gün sonu toplam üretimini gösterir.
+              Her makineye tıklayarak detaylı geçmişe ulaşabilir,
+              alt kısımdaki aksiyon butonlarıyla anında kayıt girebilirsiniz.
+            </p>
+          </div>
+
+          
+        </div>
+      </section>
+
+      <!-- kartlar grid -->
+      <section id="machineGrid" class="p-4 grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+
+        <!-- Buraya JS ile kart basıyoruz -->
+
+      </section>
+
+      <!-- ADMIN: Activity Logs Panel -->
+      <section id="activityPanel" class="hidden p-4">
+        <div class="bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-4">
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 font-medium mb-3">Kullanıcı Oturumları ve İşlemler</div>
+          <div id="activityList" class="text-[12px] text-slate-300 space-y-1"></div>
+        </div>
+      </section>
+
+      <!-- footer -->
+      <footer class="text-[11px] text-slate-600 text-center py-6 border-t border-slate-800">
+        © 2025 Üretim Takip Paneli — Dahili Kullanım
+      </footer>
+    </main>
+
+  </div>
+
+  <!-- MODAL: Takım Değişimi -->
+  <div id="toolChangeModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 text-slate-100 w-full max-w-md rounded-xl shadow-card ring-1 ring-slate-700 p-4">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 font-medium">Yeni Kayıt</div>
+          <div class="text-base font-semibold text-slate-100">Takım Değişimi / Sayaç</div>
+          <div id="modalMachineName_tc" class="mt-1 text-[11px] text-slate-400 hidden"></div>
+        </div>
+        <button class="text-slate-400 hover:text-slate-200 text-[12px]" onclick="closeModal('toolChangeModal')">✕</button>
+      </div>
+
+      <form class="text-[13px] space-y-3" onsubmit="return false;">
+        <div id="machineRow_tc">
+          <label class="block text-slate-400 mb-1">Makine</label>
+          <select id="machineSelect_tc" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none"></select>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Hangi Takımlar Değişti?</label>
+          <div id="toolTypesContainer_tc" class="bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 space-y-2"></div>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Şu Anki Sayaç</label>
+          <input id="currentCounter_tc" type="number" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" placeholder="örn. 780" />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Not (opsiyonel)</label>
+          <textarea id="noteInput_tc" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" rows="2" placeholder="Örn: 'Takım 2 çatlak'"></textarea>
+        </div>
+        <button id="saveToolChange" type="button" class="w-full rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[13px] font-semibold text-white py-2 text-center">Kaydet</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Makine Sayısı (incremental) -->
+  <div id="dailyProdModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 text-slate-100 w-full max-w-md rounded-xl shadow-card ring-1 ring-slate-700 p-4">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 font-medium">Yeni Kayıt</div>
+          <div class="text-base font-semibold text-slate-100">Makine Sayısı Ekle</div>
+          <div id="modalMachineName_dp" class="mt-1 text-[11px] text-slate-400 hidden"></div>
+        </div>
+        <button class="text-slate-400 hover:text-slate-200 text-[12px]" onclick="closeModal('dailyProdModal')">✕</button>
+      </div>
+      <form class="text-[13px] space-y-3" onsubmit="return false;">
+        <div id="machineRow_dp">
+          <label class="block text-slate-400 mb-1">Makine</label>
+          <select id="machineSelect_dp" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none"></select>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Makine Sayısı (adet)</label>
+          <input id="totalCount_dp" type="number" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" placeholder="örn. 120" />
+        </div>
+        <button id="saveDailyProd" type="button" class="w-full rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[13px] font-semibold text-white py-2 text-center">Ekle</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Çalışma Süresi -->
+  <div id="workSessionModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 text-slate-100 w-full max-w-md rounded-xl shadow-card ring-1 ring-slate-700 p-4">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 font-medium">Yeni Kayıt</div>
+          <div class="text-base font-semibold text-slate-100">Çalışma Oturumu</div>
+          <div id="modalMachineName_ws" class="mt-1 text-[11px] text-slate-400 hidden"></div>
+        </div>
+        <button class="text-slate-400 hover:text-slate-200 text-[12px]" onclick="closeModal('workSessionModal')">✕</button>
+      </div>
+      <form class="text-[13px] space-y-3" onsubmit="return false;">
+        <div id="machineRow_ws">
+          <label class="block text-slate-400 mb-1">Makine</label>
+          <select id="machineSelect_ws" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-400 mb-1">Başlangıç</label>
+            <input id="startTime_ws" type="datetime-local" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" />
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Bitiş</label>
+            <input id="endTime_ws" type="datetime-local" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Bu aralıkta adet (ops.)</label>
+          <input id="count_ws" type="number" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" placeholder="örn. 120" />
+        </div>
+        <button id="saveWorkSession" type="button" class="w-full rounded-lg bg-cyan-600 hover:bg-cyan-500 text-[13px] font-semibold text-white py-2 text-center">Kaydet</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Modal kontrolü
+    function openModal(id, machineId) {
+      document.getElementById(id).classList.remove("hidden");
+      if (id === 'toolChangeModal' || id === 'dailyProdModal' || id === 'workSessionModal') {
+        window.__modalMachineId = (typeof machineId === 'number') ? machineId : null;
+        loadMachines().then(() => {
+          if (window.__modalMachineId) {
+            setMachineOnModals(window.__modalMachineId, id);
+          } else {
+            resetMachineSelectionUI();
+          }
+        });
+      }
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.add("hidden");
+      resetMachineSelectionUI();
+      window.__modalMachineId = null;
+    }
+
+    // CSRF helper (Django)
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    async function postJSON(url, data) {
+      const csrftoken = getCookie('csrftoken');
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken || ''
+        },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    }
+
+    // whoami header + redirect to login if anonymous
+    (async () => {
+      try {
+        const ures = await fetch('/api/whoami/');
+        const u = await ures.json();
+        const el = document.getElementById('userBox');
+        if (!u.is_authenticated) {
+          window.location.href = '/login/';
+          return;
+        }
+        el.innerHTML = `<div class=\"text-slate-200 font-medium\">Kullanıcı: <span class=\"text-indigo-400\">${u.username}</span></div>`;
+        if (u.is_admin) {
+          const link = document.getElementById('adminSessionsLink');
+          if (link) link.classList.remove('hidden');
+        }
+        window.__currentUserId = u.id;
+      } catch {}
+    })();
+
+    // Dashboard kart render
+    function renderMachineCard(data) {
+      const lastCounter = data.last_counter ?? '—';
+      const lastTeams  = data.last_change_teams || '—';
+      const lastUser   = data.last_change_user || '—';
+      const lastTime   = data.last_change_time ? new Date(data.last_change_time).toLocaleString('tr-TR', {day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit'}) : '—';
+      const todayTotal = (data.today_total ?? null) !== null ? data.today_total + ' adet' : '—';
+      const lastSessionUser   = data.last_session_user || '—';
+      const lastRange  = data.last_session_range || '—';
+
+      return `
+      <article class="group relative bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-4 flex flex-col shadow-card hover:ring-indigo-500/40 hover:bg-slate-900/80 transition">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="text-[11px] uppercase tracking-wide text-slate-500 font-medium mb-1">Makine</div>
+            <div class="text-base font-semibold text-slate-100 flex items-center gap-2">
+              ${data.machine_short_name}
+              <span class="text-[10px] font-medium text-slate-400 bg-slate-800/70 ring-1 ring-slate-700 px-1.5 py-[2px] rounded">Sayaç ${lastCounter}</span>
+            </div>
+          </div>
+          <button class="text-[11px] text-slate-400 hover:text-indigo-400 underline underline-offset-4" onclick="goToDetail(${data.machine_id})">Detay &gt;</button>
+        </div>
+        <div class="mt-4 space-y-2 text-[13px] leading-relaxed">
+          <div class="flex justify-between"><span class="text-slate-400">Son Değişim</span><span class="text-slate-200 font-medium">${lastTeams} <span class="text-slate-500 text-[12px] font-normal">${lastUser}</span></span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Zaman</span><span class="text-slate-200 font-medium">${lastTime}</span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Bugün Üretim</span><span class="text-slate-200 font-medium">${todayTotal}</span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Son Çalışan</span><span class="text-slate-200 font-medium">${lastSessionUser} <span class="text-slate-500 text-[12px] font-normal">${lastRange}</span></span></div>
+        </div>
+        <div class="mt-4 grid grid-cols-3 gap-2 text-[11px] font-medium">
+          <button class="rounded-lg bg-slate-800/70 ring-1 ring-slate-700 py-2 hover:ring-indigo-500/40 hover:text-indigo-300 transition text-center" onclick="openModal('workSessionModal', ${data.machine_id})">Çalışma Süresi Gir</button>
+          <button class="rounded-lg bg-slate-800/70 ring-1 ring-slate-700 py-2 hover:ring-indigo-500/40 hover:text-indigo-300 transition text-center" onclick="openModal('dailyProdModal', ${data.machine_id})">Makine Sayısı Ekle</button>
+          <button class="rounded-lg bg-slate-800/70 ring-1 ring-slate-700 py-2 hover:ring-indigo-500/40 hover:text-indigo-300 transition text-center" onclick="openModal('toolChangeModal', ${data.machine_id})">Takım Değişimi</button>
+        </div>
+      </article>`;
+    }
+
+    function goToDetail(machineId) {
+      window.location.href = `/machine/${machineId}/`;
+    }
+
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/dashboard/');
+        const json = await res.json();
+        const grid = document.getElementById('machineGrid');
+        grid.innerHTML = '';
+        json.forEach(m => { grid.innerHTML += renderMachineCard(m); });
+      } catch (err) {
+        console.error('Dashboard verisi alınamadı:', err);
+        const grid = document.getElementById('machineGrid');
+        grid.innerHTML = `<div class="text-slate-400 text-[13px]">Veri alınamadı. API /api/dashboard/ kontrol et.</div>`;
+      }
+    }
+
+    let machinesCache = [];
+    async function loadMachines() {
+      try {
+        if (machinesCache.length === 0) {
+          const res = await fetch('/api/machines/');
+          machinesCache = await res.json();
+        }
+        ['machineSelect_tc','machineSelect_dp','machineSelect_ws'].forEach(id => {
+          const sel = document.getElementById(id);
+          if (sel) sel.innerHTML = machinesCache.map(m => `<option value="${m.id}">${m.short_name}</option>`).join('');
+        });
+        updateToolTypes('tc');
+        return machinesCache;
+      } catch (e) {
+        console.error('Makine listesi alınamadı', e);
+        return [];
+      }
+    }
+
+    function updateToolTypes(suffix) {
+      const select = document.getElementById(`machineSelect_${suffix}`);
+      const container = document.getElementById(`toolTypesContainer_${suffix}`);
+      if (!select || !container) return;
+      const selectedId = parseInt(select.value, 10);
+      const machine = machinesCache.find(m => m.id === selectedId);
+      if (!machine) { container.innerHTML = '<div class="text-slate-400">Takım bulunamadı</div>'; return; }
+      container.innerHTML = machine.tool_types.filter(tt => tt.is_active).map(tt => `
+        <label class="flex items-center gap-2">
+          <input type="checkbox" class="accent-indigo-500" value="${tt.id}" />
+          <span class="text-slate-200">${tt.name}</span>
+        </label>
+      `).join('');
+    }
+
+    document.addEventListener('change', (e) => {
+      if (e.target && e.target.id === 'machineSelect_tc') {
+        updateToolTypes('tc');
+      }
+    });
+
+    function setMachineOnModals(selectedId, openedId) {
+      const ids = ['tc','dp','ws'];
+      ids.forEach(sfx => {
+        const row = document.getElementById(`machineRow_${sfx}`);
+        const sel = document.getElementById(`machineSelect_${sfx}`);
+        const nameEl = document.getElementById(`modalMachineName_${sfx}`);
+        if (row && sel) {
+          sel.value = String(selectedId);
+          sel.disabled = true;
+          row.classList.add('hidden');
+        }
+        if (nameEl) {
+          const m = machinesCache.find(mm => mm.id === selectedId);
+          if (m) {
+            nameEl.textContent = `Makine: ${m.short_name} (${m.name})`;
+            nameEl.classList.remove('hidden');
+          }
+        }
+      });
+      if (openedId === 'toolChangeModal') {
+        updateToolTypes('tc');
+      }
+    }
+
+    function resetMachineSelectionUI() {
+      const ids = ['tc','dp','ws'];
+      ids.forEach(sfx => {
+        const row = document.getElementById(`machineRow_${sfx}`);
+        const sel = document.getElementById(`machineSelect_${sfx}`);
+        const nameEl = document.getElementById(`modalMachineName_${sfx}`);
+        if (row && sel) {
+          sel.disabled = false;
+          row.classList.remove('hidden');
+        }
+        if (nameEl) {
+          nameEl.textContent = '';
+          nameEl.classList.add('hidden');
+        }
+      });
+    }
+
+    document.getElementById('saveToolChange').addEventListener('click', async () => {
+      try {
+        const machineId = parseInt(document.getElementById('machineSelect_tc').value, 10);
+        const currentCounterRaw = document.getElementById('currentCounter_tc').value;
+        const currentCounter = currentCounterRaw === '' ? null : parseInt(currentCounterRaw, 10);
+        const note = document.getElementById('noteInput_tc').value || '';
+        const toolTypeIds = Array.from(document.querySelectorAll('#toolTypesContainer_tc input[type="checkbox"]:checked')).map(i => parseInt(i.value, 10));
+        if (toolTypeIds.length === 0) {
+          alert('En az bir takım seçmelisiniz.');
+          return;
+        }
+        await postJSON('/api/tool-change/', {
+          machine_id: machineId,
+          tool_type_ids: toolTypeIds,
+          current_counter: currentCounter,
+          note: note
+        });
+        closeModal('toolChangeModal');
+        await loadDashboard();
+      } catch (e) {
+        console.error('Kayıt başarısız', e);
+        alert('Kayıt başarısız: ' + e.message);
+      }
+    });
+
+    // Gün sonu ve çalışma oturumu butonları
+    document.getElementById('saveDailyProd').addEventListener('click', async () => {
+      try {
+        const machineId = parseInt(document.getElementById('machineSelect_dp').value, 10);
+        const total = parseInt(document.getElementById('totalCount_dp').value, 10);
+        if (isNaN(total)) { alert('Makine sayısı giriniz'); return; }
+        await postJSON('/api/daily-production/', { machine_id: machineId, total_count: total });
+        closeModal('dailyProdModal');
+        await loadDashboard();
+      } catch (e) {
+        console.error('Makine sayısı ekleme başarısız', e);
+        alert('Kayıt başarısız: ' + e.message);
+      }
+    });
+
+    document.getElementById('saveWorkSession').addEventListener('click', async () => {
+      try {
+        const userId = window.__currentUserId;
+        if (!userId) { alert('Oturum için giriş yapın.'); return; }
+        const machineId = parseInt(document.getElementById('machineSelect_ws').value, 10);
+        const start = document.getElementById('startTime_ws').value;
+        const end = document.getElementById('endTime_ws').value;
+        const countRaw = document.getElementById('count_ws').value;
+        const produced = countRaw === '' ? null : parseInt(countRaw, 10);
+        if (!start || !end) { alert('Başlangıç ve bitiş saatlerini girin.'); return; }
+        const startIso = new Date(start).toISOString();
+        const endIso = new Date(end).toISOString();
+        await postJSON('/api/work-session/', { user_id: userId, machine_id: machineId, start_time: startIso, end_time: endIso, produced_count: produced });
+        closeModal('workSessionModal');
+        await loadDashboard();
+      } catch (e) {
+        console.error('Oturum kaydı başarısız', e);
+        alert('Kayıt başarısız: ' + e.message);
+      }
+    });
+
+    // İlk yüklemede dashboard verisini çek
+    loadDashboard();
+    // Admin panel linkini tıklayınca logları göster
+    const adminLink = document.getElementById('adminSessionsLink');
+    if (adminLink) {
+      adminLink.addEventListener('click', async () => {
+        const panel = document.getElementById('activityPanel');
+        panel.classList.remove('hidden');
+        await loadActivityLogs();
+        window.scrollTo({ top: panel.offsetTop, behavior: 'smooth' });
+      });
+    }
+
+    async function loadActivityLogs() {
+      try {
+        const res = await fetch('/api/admin/activity-logs/');
+        if (!res.ok) return;
+        const logs = await res.json();
+        const list = document.getElementById('activityList');
+        list.innerHTML = logs.map(l => {
+          const when = new Date(l.created_at).toLocaleString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+          const who = l.user_username || '—';
+          const what = l.action;
+          const mach = l.machine_short_name || '—';
+          const det = l.details || '';
+          return `<div class=\"flex justify-between\"><span>${when} • ${who} • ${what} @ ${mach}</span><span class=\"text-slate-400\">${det}</span></div>`;
+        }).join('');
+      } catch {}
+    }
+  </script>
+
+</body>
+</html>
+
+
