@@ -174,31 +174,34 @@ class MaterialTypeSerializer(serializers.ModelSerializer):
 
 class MaterialEntrySerializer(serializers.ModelSerializer):
     material_type_name = serializers.CharField(source="material_type.name", read_only=True)
+    created_by_username = serializers.CharField(source="created_by.username", read_only=True)
 
     class Meta:
         model = MaterialEntry
-        fields = ["id", "material_type", "material_type_name", "boxes_count", "units_per_box", "created_by", "created_at"]
+        fields = ["id", "material_type", "material_type_name", "boxes_count", "units_per_box", "created_by", "created_by_username", "created_at"]
         read_only_fields = ["created_by", "created_at"]
 
 
 class MaterialShipmentSerializer(serializers.ModelSerializer):
     material_type_name = serializers.CharField(source="material_type.name", read_only=True)
+    created_by_username = serializers.CharField(source="created_by.username", read_only=True)
 
     class Meta:
         model = MaterialShipment
-        fields = ["id", "material_type", "material_type_name", "boxes_count", "note", "created_by", "created_at"]
+        fields = ["id", "material_type", "material_type_name", "boxes_count", "units_per_box", "note", "created_by", "created_by_username", "created_at"]
         read_only_fields = ["created_by", "created_at"]
 
 
 class CreateMaterialEntrySerializer(serializers.Serializer):
     material_type_id = serializers.IntegerField()
     boxes_count = serializers.IntegerField()
-    units_per_box = serializers.IntegerField(required=False, allow_null=True)
+    units_per_box = serializers.IntegerField()  # ZORUNLU
 
 
 class CreateMaterialShipmentSerializer(serializers.Serializer):
     material_type_id = serializers.IntegerField()
     boxes_count = serializers.IntegerField()
+    units_per_box = serializers.IntegerField()  # ZORUNLU
     note = serializers.CharField(required=False, allow_blank=True)
 
 

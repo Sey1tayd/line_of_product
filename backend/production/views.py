@@ -139,13 +139,8 @@ def dashboard_data(request):
             
         total_boxes = entries.aggregate(Sum('boxes_count'))['boxes_count__sum'] or 0
         
-        # Calculate total units (only if units_per_box is consistently set)
-        total_units = 0
-        has_units = False
-        for entry in entries:
-            if entry.units_per_box:
-                total_units += entry.boxes_count * entry.units_per_box
-                has_units = True
+        # Calculate total units (units_per_box is now always set)
+        total_units = sum(entry.boxes_count * entry.units_per_box for entry in entries)
         
         # Get latest entry for additional info
         latest_entry = entries.order_by('-created_at').first()
@@ -155,7 +150,7 @@ def dashboard_data(request):
             "material_name": mat_type.name,
             "material_code": mat_type.code or "",
             "total_boxes": total_boxes,
-            "total_units": total_units if has_units else None,
+            "total_units": total_units,
             "entry_count": entries.count(),
             "last_updated": latest_entry.created_at if latest_entry else None,
             "last_updated_by": latest_entry.created_by.username if latest_entry and latest_entry.created_by else "—",
@@ -369,6 +364,43 @@ def material_stock_summary(request):
     return Response(data)
 
 
+@api_view(["GET"])
+def material_detail(request, material_id: int):
+    """Material detay sayfası - tüm giriş ve çıkışları gösterir"""
+    material = get_object_or_404(MaterialType, id=material_id)
+    
+    # Get all entries and shipments
+    entries = MaterialEntry.objects.filter(material_type=material).select_related("created_by").order_by("-created_at")[:50]
+    shipments = MaterialShipment.objects.filter(material_type=material).select_related("created_by").order_by("-created_at")[:50]
+    
+    # Calculate totals
+    total_entries = MaterialEntry.objects.filter(material_type=material)
+    total_shipments = MaterialShipment.objects.filter(material_type=material)
+    
+    total_boxes_in = sum(e.boxes_count for e in total_entries)
+    total_units_in = sum(e.boxes_count * e.units_per_box for e in total_entries)
+    
+    total_boxes_out = sum(s.boxes_count for s in total_shipments)
+    total_units_out = sum(s.boxes_count * s.units_per_box for s in total_shipments)
+    
+    stock_boxes = total_boxes_in - total_boxes_out
+    stock_units = total_units_in - total_units_out
+    
+    return Response({
+        "material": MaterialTypeSerializer(material).data,
+        "entries": MaterialEntrySerializer(entries, many=True).data,
+        "shipments": MaterialShipmentSerializer(shipments, many=True).data,
+        "summary": {
+            "total_boxes_in": total_boxes_in,
+            "total_units_in": total_units_in,
+            "total_boxes_out": total_boxes_out,
+            "total_units_out": total_units_out,
+            "stock_boxes": stock_boxes,
+            "stock_units": stock_units,
+        }
+    })
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_material_entry(request):
@@ -396,10 +428,12 @@ def create_material_shipment(request):
     ship = MaterialShipment.objects.create(
         material_type=mt,
         boxes_count=serializer.validated_data["boxes_count"],
+        units_per_box=serializer.validated_data["units_per_box"],
         note=serializer.validated_data.get("note", ""),
         created_by=request.user,
     )
-    ActivityLog.objects.create(user=request.user, action="work_session", machine=None, details=f"material_out {mt.name} -{ship.boxes_count} kutu")
+    total_units = ship.boxes_count * ship.units_per_box
+    ActivityLog.objects.create(user=request.user, action="work_session", machine=None, details=f"material_out {mt.name} -{ship.boxes_count} kutu ({total_units} adet)")
     return Response(MaterialShipmentSerializer(ship).data, status=201)
 
 

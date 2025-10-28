@@ -99,20 +99,21 @@ class MaterialType(models.Model):
 class MaterialEntry(models.Model):
     material_type = models.ForeignKey(MaterialType, on_delete=models.CASCADE, related_name="entries")
     boxes_count = models.IntegerField()  # girilen kutu sayısı
-    units_per_box = models.IntegerField(blank=True, null=True)  # kutu adedi (opsiyonel)
+    units_per_box = models.IntegerField(default=1)  # kutu başına adet sayısı (ZORUNLU)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="material_entries")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.material_type.name} +{self.boxes_count} kutu"
+        return f"{self.material_type.name} +{self.boxes_count} kutu ({self.boxes_count * self.units_per_box} adet)"
 
 
 class MaterialShipment(models.Model):
     material_type = models.ForeignKey(MaterialType, on_delete=models.CASCADE, related_name="shipments")
     boxes_count = models.IntegerField()  # giden kutu sayısı
+    units_per_box = models.IntegerField(default=1)  # kutu başına adet sayısı (ZORUNLU)
     note = models.CharField(max_length=200, blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="material_shipments")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.material_type.name} -{self.boxes_count} kutu"
+        return f"{self.material_type.name} -{self.boxes_count} kutu ({self.boxes_count * self.units_per_box} adet)"

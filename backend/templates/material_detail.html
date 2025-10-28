@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Materyal Detay</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100">
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur px-4 py-3 flex items-center justify-between">
+    <a href="/" class="text-[12px] text-slate-400 hover:text-indigo-300">← Ana Sayfa</a>
+    <div class="text-lg font-semibold">Materyal Detay</div>
+    <div class="text-right text-sm leading-tight" id="userBox"></div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <!-- Header Info -->
+    <section id="headerInfo" class="bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-6">
+      <div class="flex items-start justify-between">
+        <div class="flex-1">
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Materyal</div>
+          <div class="text-2xl font-semibold" id="materialName">—</div>
+          <div class="text-[13px] text-slate-400 mt-1" id="materialCode">—</div>
+        </div>
+        <div class="text-right space-y-4">
+          <div>
+            <div class="text-[11px] uppercase tracking-widest text-slate-500">Stok Durumu</div>
+            <div class="text-lg font-semibold text-emerald-400" id="stockBoxes">—</div>
+            <div class="text-[12px] text-slate-400" id="stockUnits">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-4 border-t border-slate-800">
+        <div>
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Toplam Giriş</div>
+          <div class="text-base font-semibold text-slate-200" id="totalIn">—</div>
+        </div>
+        <div>
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Toplam Çıkış</div>
+          <div class="text-base font-semibold text-slate-200" id="totalOut">—</div>
+        </div>
+        <div>
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Giriş (Adet)</div>
+          <div class="text-[13px] text-slate-400" id="totalUnitsIn">—</div>
+        </div>
+        <div>
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Çıkış (Adet)</div>
+          <div class="text-[13px] text-slate-400" id="totalUnitsOut">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Action Buttons -->
+    <section class="flex gap-3">
+      <button onclick="openAddModal()" class="flex-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[13px] font-semibold text-white py-3 text-center transition">
+        + Stoka Ekle
+      </button>
+      <button id="removeBtn" onclick="openRemoveModal()" class="flex-1 rounded-lg bg-red-600 hover:bg-red-500 text-[13px] font-semibold text-white py-3 text-center transition hidden">
+        − Stoktan Çıkar
+      </button>
+    </section>
+
+    <!-- Entries and Shipments -->
+    <section class="grid md:grid-cols-2 gap-4">
+      <!-- Entries -->
+      <div class="bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-4">
+        <div class="text-[11px] uppercase tracking-widest text-slate-500 mb-3">Giriş Geçmişi</div>
+        <div id="entriesList" class="space-y-2 text-[13px] max-h-[500px] overflow-y-auto">
+          <!-- JS ile doldurulacak -->
+        </div>
+      </div>
+
+      <!-- Shipments -->
+      <div class="bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-4">
+        <div class="text-[11px] uppercase tracking-widest text-slate-500 mb-3">Çıkış Geçmişi</div>
+        <div id="shipmentsList" class="space-y-2 text-[13px] max-h-[500px] overflow-y-auto">
+          <!-- JS ile doldurulacak -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Add Material Modal -->
+  <div id="addModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 text-slate-100 w-full max-w-md rounded-xl shadow-card ring-1 ring-slate-700 p-4">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 font-medium">Yeni Giriş</div>
+          <div class="text-base font-semibold text-slate-100">Stoka Materyal Ekle</div>
+        </div>
+        <button class="text-slate-400 hover:text-slate-200 text-[12px]" onclick="closeAddModal()">✕</button>
+      </div>
+      <form class="text-[13px] space-y-3" onsubmit="return false;">
+        <div>
+          <label class="block text-slate-400 mb-1">Kutu Sayısı</label>
+          <input id="addBoxes" type="number" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" placeholder="örn. 10" required />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Kutu Başına Adet</label>
+          <input id="addUnits" type="number" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" placeholder="örn. 50" required />
+        </div>
+        <button id="saveAdd" type="button" class="w-full rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[13px] font-semibold text-white py-2 text-center">Ekle</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Remove Material Modal -->
+  <div id="removeModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 text-slate-100 w-full max-w-md rounded-xl shadow-card ring-1 ring-slate-700 p-4">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 font-medium">Yeni Çıkış</div>
+          <div class="text-base font-semibold text-slate-100">Stoktan Materyal Çıkar</div>
+        </div>
+        <button class="text-slate-400 hover:text-slate-200 text-[12px]" onclick="closeRemoveModal()">✕</button>
+      </div>
+      <form class="text-[13px] space-y-3" onsubmit="return false;">
+        <div>
+          <label class="block text-slate-400 mb-1">Kutu Sayısı</label>
+          <input id="removeBoxes" type="number" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" placeholder="örn. 5" required />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Kutu Başına Adet</label>
+          <input id="removeUnits" type="number" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" placeholder="örn. 50" required />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Not (opsiyonel)</label>
+          <input id="removeNote" type="text" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" placeholder="örn. Sevkiyat #123" />
+        </div>
+        <button id="saveRemove" type="button" class="w-full rounded-lg bg-red-600 hover:bg-red-500 text-[13px] font-semibold text-white py-2 text-center">Çıkar</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let currentMaterialId = null;
+
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    function getMaterialIdFromPath() {
+      const parts = window.location.pathname.split('/').filter(Boolean);
+      const idx = parts.indexOf('material');
+      if (idx >= 0 && parts[idx+1]) return parseInt(parts[idx+1], 10);
+      return null;
+    }
+
+    async function fetchJSON(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    }
+
+    async function postJSON(url, data) {
+      const csrftoken = getCookie('csrftoken');
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken || ''
+        },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    }
+
+    function renderHeader(data) {
+      document.getElementById('materialName').textContent = data.material.name;
+      document.getElementById('materialCode').textContent = data.material.code ? `Kod: ${data.material.code}` : 'Kod bilgisi yok';
+      
+      const s = data.summary;
+      document.getElementById('stockBoxes').textContent = `${s.stock_boxes} kutu`;
+      document.getElementById('stockUnits').textContent = `${s.stock_units.toLocaleString('tr-TR')} adet`;
+      document.getElementById('totalIn').textContent = `${s.total_boxes_in} kutu`;
+      document.getElementById('totalOut').textContent = `${s.total_boxes_out} kutu`;
+      document.getElementById('totalUnitsIn').textContent = `${s.total_units_in.toLocaleString('tr-TR')} adet`;
+      document.getElementById('totalUnitsOut').textContent = `${s.total_units_out.toLocaleString('tr-TR')} adet`;
+    }
+
+    function renderEntries(list) {
+      const container = document.getElementById('entriesList');
+      if (list.length === 0) {
+        container.innerHTML = '<div class="text-slate-400">Henüz giriş yok</div>';
+        return;
+      }
+      container.innerHTML = list.map(e => {
+        const when = new Date(e.created_at).toLocaleString('tr-TR', {day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit'});
+        const who = e.created_by_username || '—';
+        const total = e.boxes_count * e.units_per_box;
+        return `
+          <div class="flex items-start justify-between py-2 px-3 bg-slate-800/30 rounded-lg">
+            <div>
+              <div class="text-emerald-400 font-medium">+${e.boxes_count} kutu</div>
+              <div class="text-slate-400 text-[11px]">${e.units_per_box} adet/kutu = ${total.toLocaleString('tr-TR')} adet</div>
+            </div>
+            <div class="text-right text-[11px]">
+              <div class="text-slate-300">${who}</div>
+              <div class="text-slate-500">${when}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderShipments(list) {
+      const container = document.getElementById('shipmentsList');
+      if (list.length === 0) {
+        container.innerHTML = '<div class="text-slate-400">Henüz çıkış yok</div>';
+        return;
+      }
+      container.innerHTML = list.map(s => {
+        const when = new Date(s.created_at).toLocaleString('tr-TR', {day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit'});
+        const who = s.created_by_username || '—';
+        const total = s.boxes_count * s.units_per_box;
+        const note = s.note ? `<div class="text-slate-400 text-[11px] italic mt-1">${s.note}</div>` : '';
+        return `
+          <div class="flex items-start justify-between py-2 px-3 bg-slate-800/30 rounded-lg">
+            <div>
+              <div class="text-red-400 font-medium">-${s.boxes_count} kutu</div>
+              <div class="text-slate-400 text-[11px]">${s.units_per_box} adet/kutu = ${total.toLocaleString('tr-TR')} adet</div>
+              ${note}
+            </div>
+            <div class="text-right text-[11px]">
+              <div class="text-slate-300">${who}</div>
+              <div class="text-slate-500">${when}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function loadDetail() {
+      try {
+        currentMaterialId = getMaterialIdFromPath();
+        if (!currentMaterialId) {
+          alert('Materyal ID bulunamadı');
+          return;
+        }
+        const data = await fetchJSON(`/api/materials/${currentMaterialId}/`);
+        renderHeader(data);
+        renderEntries(data.entries);
+        renderShipments(data.shipments);
+      } catch (err) {
+        console.error('Detay alınamadı:', err);
+        alert('Veri alınamadı');
+      }
+    }
+
+    function openAddModal() {
+      document.getElementById('addModal').classList.remove('hidden');
+    }
+
+    function closeAddModal() {
+      document.getElementById('addModal').classList.add('hidden');
+      document.getElementById('addBoxes').value = '';
+      document.getElementById('addUnits').value = '';
+    }
+
+    function openRemoveModal() {
+      document.getElementById('removeModal').classList.remove('hidden');
+    }
+
+    function closeRemoveModal() {
+      document.getElementById('removeModal').classList.add('hidden');
+      document.getElementById('removeBoxes').value = '';
+      document.getElementById('removeUnits').value = '';
+      document.getElementById('removeNote').value = '';
+    }
+
+    document.getElementById('saveAdd').addEventListener('click', async () => {
+      try {
+        const boxes = parseInt(document.getElementById('addBoxes').value, 10);
+        const units = parseInt(document.getElementById('addUnits').value, 10);
+        if (isNaN(boxes) || isNaN(units) || boxes <= 0 || units <= 0) {
+          alert('Lütfen geçerli değerler girin');
+          return;
+        }
+        await postJSON('/api/materials/entry/', {
+          material_type_id: currentMaterialId,
+          boxes_count: boxes,
+          units_per_box: units
+        });
+        closeAddModal();
+        await loadDetail();
+      } catch (err) {
+        console.error('Giriş kaydedilemedi:', err);
+        alert('Kayıt başarısız: ' + err.message);
+      }
+    });
+
+    document.getElementById('saveRemove').addEventListener('click', async () => {
+      try {
+        const boxes = parseInt(document.getElementById('removeBoxes').value, 10);
+        const units = parseInt(document.getElementById('removeUnits').value, 10);
+        const note = document.getElementById('removeNote').value || '';
+        if (isNaN(boxes) || isNaN(units) || boxes <= 0 || units <= 0) {
+          alert('Lütfen geçerli değerler girin');
+          return;
+        }
+        await postJSON('/api/materials/shipment/', {
+          material_type_id: currentMaterialId,
+          boxes_count: boxes,
+          units_per_box: units,
+          note: note
+        });
+        closeRemoveModal();
+        await loadDetail();
+      } catch (err) {
+        console.error('Çıkış kaydedilemedi:', err);
+        alert('Kayıt başarısız: ' + err.message);
+      }
+    });
+
+    // Check user permissions
+    (async () => {
+      try {
+        const ures = await fetch('/api/whoami/');
+        const u = await ures.json();
+        const el = document.getElementById('userBox');
+        if (!u.is_authenticated) {
+          window.location.href = '/login/';
+          return;
+        }
+        el.innerHTML = `<div class="text-slate-200 font-medium">Kullanıcı: <span class="text-indigo-400">${u.username}</span></div>`;
+        
+        // Show remove button only for admins
+        if (u.is_admin) {
+          document.getElementById('removeBtn').classList.remove('hidden');
+        }
+      } catch {}
+    })();
+
+    // Load detail on page load
+    loadDetail();
+  </script>
+</body>
+</html>
+

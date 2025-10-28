@@ -354,6 +354,10 @@
       window.location.href = `/machine/${machineId}/`;
     }
 
+    function goToMaterialDetail(materialId) {
+      window.location.href = `/material/${materialId}/`;
+    }
+
     async function loadDashboard() {
       try {
         const res = await fetch('/api/dashboard/');
@@ -390,10 +394,10 @@
         }) : '—';
         
         const codeText = mat.material_code ? ` [${mat.material_code}]` : '';
-        const unitsText = mat.total_units ? `, <strong>${mat.total_units.toLocaleString('tr-TR')} adet</strong> malzeme` : '';
+        const unitsText = `, <strong>${mat.total_units.toLocaleString('tr-TR')} adet</strong> malzeme`;
         
         return `
-        <div class="flex items-center justify-between py-3 px-3 bg-slate-800/30 rounded-lg hover:bg-slate-800/50 transition">
+        <div class="flex items-center justify-between py-3 px-3 bg-slate-800/30 rounded-lg hover:bg-slate-800/50 transition cursor-pointer" onclick="goToMaterialDetail(${mat.material_id})">
           <div class="flex-1">
             <div class="flex items-center gap-2 mb-1">
               <span class="text-slate-100 font-semibold">${mat.material_name}${codeText}</span>
@@ -409,6 +413,9 @@
             <div class="text-slate-400">Son güncelleme</div>
             <div class="text-slate-300 font-medium">${mat.last_updated_by}</div>
             <div class="text-slate-500">${lastUpdated}</div>
+          </div>
+          <div class="ml-3">
+            <button class="text-[11px] text-slate-400 hover:text-indigo-400 underline underline-offset-4">Detay &gt;</button>
           </div>
         </div>
         `;

@@ -18,6 +18,7 @@ from .views import (
     admin_activity_logs,
     material_types,
     material_stock_summary,
+    material_detail,
     create_material_entry,
     create_material_shipment,
 )
@@ -43,6 +44,7 @@ urlpatterns = [
     # Material endpoints
     path("materials/types/", material_types, name="material-types"),
     path("materials/stock/", material_stock_summary, name="material-stock"),
+    path("materials/<int:material_id>/", material_detail, name="material-detail"),
     path("materials/entry/", create_material_entry, name="material-entry"),
     path("materials/shipment/", create_material_shipment, name="material-shipment"),
 ]
