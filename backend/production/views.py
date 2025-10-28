@@ -126,8 +126,50 @@ def dashboard_data(request):
             "last_session_range": last_session_range,
         })
 
-    serializer = MachineDashboardSerializer(machine_cards, many=True)
-    return Response(serializer.data)
+    # Get material summary by grouping entries by material type
+    from django.db.models import Sum, Count
+    
+    material_types = MaterialType.objects.filter(is_active=True)
+    material_summary = []
+    
+    for mat_type in material_types:
+        entries = MaterialEntry.objects.filter(material_type=mat_type)
+        if not entries.exists():
+            continue
+            
+        total_boxes = entries.aggregate(Sum('boxes_count'))['boxes_count__sum'] or 0
+        
+        # Calculate total units (only if units_per_box is consistently set)
+        total_units = 0
+        has_units = False
+        for entry in entries:
+            if entry.units_per_box:
+                total_units += entry.boxes_count * entry.units_per_box
+                has_units = True
+        
+        # Get latest entry for additional info
+        latest_entry = entries.order_by('-created_at').first()
+        
+        material_summary.append({
+            "material_id": mat_type.id,
+            "material_name": mat_type.name,
+            "material_code": mat_type.code or "",
+            "total_boxes": total_boxes,
+            "total_units": total_units if has_units else None,
+            "entry_count": entries.count(),
+            "last_updated": latest_entry.created_at if latest_entry else None,
+            "last_updated_by": latest_entry.created_by.username if latest_entry and latest_entry.created_by else "—",
+        })
+    
+    # Sort by last updated (most recent first)
+    material_summary.sort(key=lambda x: x['last_updated'] if x['last_updated'] else timezone.datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+    
+    response_data = {
+        "machines": machine_cards,
+        "material_summary": material_summary
+    }
+
+    return Response(response_data)
 
 
 @api_view(["GET"])

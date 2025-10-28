@@ -128,6 +128,21 @@
 
       </section>
 
+      <!-- Materyal Girişleri Panel -->
+      <section class="p-4">
+        <div class="bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <div class="text-[11px] uppercase tracking-widest text-slate-500 font-medium">Materyal Stok Durumu</div>
+              <div class="text-[12px] text-slate-400 mt-1">Tüm materyal türleri için toplam giriş bilgileri</div>
+            </div>
+          </div>
+          <div id="materialEntriesContainer" class="space-y-2">
+            <!-- Buraya JS ile materyal özeti basılacak -->
+          </div>
+        </div>
+      </section>
+
       <!-- ADMIN: Activity Logs Panel -->
       <section id="activityPanel" class="hidden p-4">
         <div class="bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-4">
@@ -345,12 +360,59 @@
         const json = await res.json();
         const grid = document.getElementById('machineGrid');
         grid.innerHTML = '';
-        json.forEach(m => { grid.innerHTML += renderMachineCard(m); });
+        json.machines.forEach(m => { grid.innerHTML += renderMachineCard(m); });
+        
+        // Render material summary
+        renderMaterialSummary(json.material_summary || []);
       } catch (err) {
         console.error('Dashboard verisi alınamadı:', err);
         const grid = document.getElementById('machineGrid');
         grid.innerHTML = `<div class="text-slate-400 text-[13px]">Veri alınamadı. API /api/dashboard/ kontrol et.</div>`;
       }
+    }
+
+    function renderMaterialSummary(materials) {
+      const container = document.getElementById('materialEntriesContainer');
+      if (!container) return;
+      
+      if (materials.length === 0) {
+        container.innerHTML = '<div class="text-slate-400 text-[13px]">Henüz materyal girişi yok.</div>';
+        return;
+      }
+
+      container.innerHTML = materials.map(mat => {
+        const lastUpdated = mat.last_updated ? new Date(mat.last_updated).toLocaleString('tr-TR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }) : '—';
+        
+        const codeText = mat.material_code ? ` [${mat.material_code}]` : '';
+        const unitsText = mat.total_units ? `, <strong>${mat.total_units.toLocaleString('tr-TR')} adet</strong> malzeme` : '';
+        
+        return `
+        <div class="flex items-center justify-between py-3 px-3 bg-slate-800/30 rounded-lg hover:bg-slate-800/50 transition">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-slate-100 font-semibold">${mat.material_name}${codeText}</span>
+              <span class="inline-flex items-center rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-medium px-2 py-[2px] ring-1 ring-emerald-500/40">
+                ${mat.entry_count} giriş
+              </span>
+            </div>
+            <div class="text-slate-300 text-[13px]">
+              Toplam: <strong>${mat.total_boxes} kutu</strong>${unitsText}
+            </div>
+          </div>
+          <div class="text-right text-[11px]">
+            <div class="text-slate-400">Son güncelleme</div>
+            <div class="text-slate-300 font-medium">${mat.last_updated_by}</div>
+            <div class="text-slate-500">${lastUpdated}</div>
+          </div>
+        </div>
+        `;
+      }).join('');
     }
 
     let machinesCache = [];
