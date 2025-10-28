@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personel Takip</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100">
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur px-4 py-3 flex items-center justify-between">
+    <a href="/" class="text-[12px] text-slate-400 hover:text-indigo-300">← Ana Sayfa</a>
+    <div class="text-lg font-semibold">Personel Takip</div>
+    <div class="text-right text-sm leading-tight" id="userBox"></div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    
+    <!-- Admin Filter (only visible for admins) -->
+    <section id="adminFilter" class="hidden bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-4">
+      <div class="flex items-center gap-4">
+        <div class="text-[11px] uppercase tracking-widest text-slate-500 font-medium">Filtre</div>
+        <select id="userFilter" class="bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 text-[13px] outline-none">
+          <option value="">Tüm Kullanıcılar</option>
+        </select>
+        <button onclick="loadData()" class="rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[13px] font-semibold text-white px-4 py-2">
+          Uygula
+        </button>
+      </div>
+    </section>
+
+    <!-- Action Buttons (only visible for admins) -->
+    <section id="adminActions" class="hidden flex gap-3">
+      <button onclick="openAbsenceModal()" class="flex-1 rounded-lg bg-orange-600 hover:bg-orange-500 text-[13px] font-semibold text-white py-3 text-center transition">
+        + Devamsızlık Ekle
+      </button>
+      <button onclick="openAdvanceModal()" class="flex-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[13px] font-semibold text-white py-3 text-center transition">
+        + Avans Ekle
+      </button>
+    </section>
+
+    <!-- Two Column Layout -->
+    <section class="grid md:grid-cols-2 gap-4">
+      
+      <!-- Absences -->
+      <div class="bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 font-medium">Devamsızlık Kayıtları</div>
+        </div>
+        <div id="absencesList" class="space-y-2 text-[13px] max-h-[600px] overflow-y-auto">
+          <!-- JS ile doldurulacak -->
+        </div>
+      </div>
+
+      <!-- Advances -->
+      <div class="bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 font-medium">Avans Kayıtları</div>
+        </div>
+        <div id="advancesList" class="space-y-2 text-[13px] max-h-[600px] overflow-y-auto">
+          <!-- JS ile doldurulacak -->
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Add Absence Modal -->
+  <div id="absenceModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 text-slate-100 w-full max-w-md rounded-xl shadow-card ring-1 ring-slate-700 p-4">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 font-medium">Yeni Kayıt</div>
+          <div class="text-base font-semibold text-slate-100">Devamsızlık Ekle</div>
+        </div>
+        <button class="text-slate-400 hover:text-slate-200 text-[12px]" onclick="closeAbsenceModal()">✕</button>
+      </div>
+      <form class="text-[13px] space-y-3" onsubmit="return false;">
+        <div>
+          <label class="block text-slate-400 mb-1">Çalışan</label>
+          <select id="absenceUser" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" required>
+            <option value="">Seçiniz...</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Tarih</label>
+          <input id="absenceDate" type="date" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" required />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Sebep (opsiyonel)</label>
+          <input id="absenceReason" type="text" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" placeholder="örn. İzinli" />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Not (opsiyonel)</label>
+          <textarea id="absenceNote" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" rows="2" placeholder="Ek bilgiler..."></textarea>
+        </div>
+        <button id="saveAbsence" type="button" class="w-full rounded-lg bg-orange-600 hover:bg-orange-500 text-[13px] font-semibold text-white py-2 text-center">Kaydet</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Advance Modal -->
+  <div id="advanceModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 text-slate-100 w-full max-w-md rounded-xl shadow-card ring-1 ring-slate-700 p-4">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 font-medium">Yeni Kayıt</div>
+          <div class="text-base font-semibold text-slate-100">Avans Ekle</div>
+        </div>
+        <button class="text-slate-400 hover:text-slate-200 text-[12px]" onclick="closeAdvanceModal()">✕</button>
+      </div>
+      <form class="text-[13px] space-y-3" onsubmit="return false;">
+        <div>
+          <label class="block text-slate-400 mb-1">Çalışan</label>
+          <select id="advanceUser" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" required>
+            <option value="">Seçiniz...</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Miktar (TL)</label>
+          <input id="advanceAmount" type="number" step="0.01" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" placeholder="örn. 500" required />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Tarih</label>
+          <input id="advanceDate" type="date" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" required />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Not (opsiyonel)</label>
+          <textarea id="advanceNote" class="w-full bg-slate-800/70 ring-1 ring-slate-700 rounded-lg px-3 py-2 outline-none text-slate-100" rows="2" placeholder="Ek bilgiler..."></textarea>
+        </div>
+        <button id="saveAdvance" type="button" class="w-full rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[13px] font-semibold text-white py-2 text-center">Kaydet</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let isAdmin = false;
+    let currentUser = null;
+
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    async function fetchJSON(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    }
+
+    async function postJSON(url, data) {
+      const csrftoken = getCookie('csrftoken');
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken || ''
+        },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    }
+
+    async function deleteJSON(url) {
+      const csrftoken = getCookie('csrftoken');
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRFToken': csrftoken || ''
+        }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    }
+
+    function renderAbsences(list) {
+      const container = document.getElementById('absencesList');
+      if (list.length === 0) {
+        container.innerHTML = '<div class="text-slate-400">Henüz devamsızlık kaydı yok</div>';
+        return;
+      }
+
+      container.innerHTML = list.map(a => {
+        const date = new Date(a.absence_date).toLocaleDateString('tr-TR');
+        const created = new Date(a.created_at).toLocaleString('tr-TR', {day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit'});
+        const name = a.user_first_name && a.user_last_name ? `${a.user_first_name} ${a.user_last_name}` : a.user_username;
+        const reason = a.reason ? `<div class="text-slate-400 text-[11px] mt-1">${a.reason}</div>` : '';
+        const note = a.note ? `<div class="text-slate-500 text-[11px] italic mt-1">${a.note}</div>` : '';
+        const deleteBtn = isAdmin ? `<button onclick="deleteAbsence(${a.id})" class="text-red-400 hover:text-red-300 text-[11px]">Sil</button>` : '';
+        
+        return `
+          <div class="flex items-start justify-between py-2 px-3 bg-slate-800/30 rounded-lg">
+            <div class="flex-1">
+              <div class="font-medium text-orange-400">${name}</div>
+              <div class="text-slate-300 text-[12px]">${date}</div>
+              ${reason}
+              ${note}
+              <div class="text-slate-500 text-[10px] mt-1">Kaydeden: ${a.recorded_by_username || '—'} • ${created}</div>
+            </div>
+            <div>${deleteBtn}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderAdvances(list) {
+      const container = document.getElementById('advancesList');
+      if (list.length === 0) {
+        container.innerHTML = '<div class="text-slate-400">Henüz avans kaydı yok</div>';
+        return;
+      }
+
+      container.innerHTML = list.map(a => {
+        const date = new Date(a.date).toLocaleDateString('tr-TR');
+        const created = new Date(a.created_at).toLocaleString('tr-TR', {day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit'});
+        const name = a.user_first_name && a.user_last_name ? `${a.user_first_name} ${a.user_last_name}` : a.user_username;
+        const amount = parseFloat(a.amount).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        const note = a.note ? `<div class="text-slate-500 text-[11px] italic mt-1">${a.note}</div>` : '';
+        const deleteBtn = isAdmin ? `<button onclick="deleteAdvance(${a.id})" class="text-red-400 hover:text-red-300 text-[11px]">Sil</button>` : '';
+        
+        return `
+          <div class="flex items-start justify-between py-2 px-3 bg-slate-800/30 rounded-lg">
+            <div class="flex-1">
+              <div class="font-medium text-emerald-400">${name}</div>
+              <div class="text-slate-300 text-[12px]">${amount} TL • ${date}</div>
+              ${note}
+              <div class="text-slate-500 text-[10px] mt-1">Kaydeden: ${a.recorded_by_username || '—'} • ${created}</div>
+            </div>
+            <div>${deleteBtn}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function loadData() {
+      try {
+        const userId = document.getElementById('userFilter')?.value || '';
+        const absencesUrl = userId ? `/api/personnel/absences/?user_id=${userId}` : '/api/personnel/absences/';
+        const advancesUrl = userId ? `/api/personnel/advances/?user_id=${userId}` : '/api/personnel/advances/';
+        
+        const [absences, advances] = await Promise.all([
+          fetchJSON(absencesUrl),
+          fetchJSON(advancesUrl)
+        ]);
+        
+        renderAbsences(absences);
+        renderAdvances(advances);
+      } catch (err) {
+        console.error('Veri alınamadı:', err);
+        alert('Veri yüklenemedi: ' + err.message);
+      }
+    }
+
+    async function loadUsers() {
+      if (!isAdmin) return;
+      try {
+        const users = await fetchJSON('/api/personnel/users/');
+        const absenceSelect = document.getElementById('absenceUser');
+        const advanceSelect = document.getElementById('advanceUser');
+        const filterSelect = document.getElementById('userFilter');
+        
+        const options = users.map(u => `<option value="${u.id}">${u.full_name}</option>`).join('');
+        absenceSelect.innerHTML += options;
+        advanceSelect.innerHTML += options;
+        filterSelect.innerHTML += options;
+      } catch (err) {
+        console.error('Kullanıcılar alınamadı:', err);
+      }
+    }
+
+    function openAbsenceModal() {
+      document.getElementById('absenceModal').classList.remove('hidden');
+      document.getElementById('absenceDate').valueAsDate = new Date();
+    }
+
+    function closeAbsenceModal() {
+      document.getElementById('absenceModal').classList.add('hidden');
+      document.getElementById('absenceUser').value = '';
+      document.getElementById('absenceDate').value = '';
+      document.getElementById('absenceReason').value = '';
+      document.getElementById('absenceNote').value = '';
+    }
+
+    function openAdvanceModal() {
+      document.getElementById('advanceModal').classList.remove('hidden');
+      document.getElementById('advanceDate').valueAsDate = new Date();
+    }
+
+    function closeAdvanceModal() {
+      document.getElementById('advanceModal').classList.add('hidden');
+      document.getElementById('advanceUser').value = '';
+      document.getElementById('advanceAmount').value = '';
+      document.getElementById('advanceDate').value = '';
+      document.getElementById('advanceNote').value = '';
+    }
+
+    document.getElementById('saveAbsence').addEventListener('click', async () => {
+      try {
+        const userId = parseInt(document.getElementById('absenceUser').value, 10);
+        const date = document.getElementById('absenceDate').value;
+        const reason = document.getElementById('absenceReason').value;
+        const note = document.getElementById('absenceNote').value;
+        
+        if (!userId || !date) {
+          alert('Lütfen çalışan ve tarih seçiniz');
+          return;
+        }
+        
+        await postJSON('/api/personnel/absences/create/', {
+          user_id: userId,
+          absence_date: date,
+          reason: reason,
+          note: note
+        });
+        
+        closeAbsenceModal();
+        await loadData();
+      } catch (err) {
+        console.error('Kayıt başarısız:', err);
+        alert('Kayıt başarısız: ' + err.message);
+      }
+    });
+
+    document.getElementById('saveAdvance').addEventListener('click', async () => {
+      try {
+        const userId = parseInt(document.getElementById('advanceUser').value, 10);
+        const amount = parseFloat(document.getElementById('advanceAmount').value);
+        const date = document.getElementById('advanceDate').value;
+        const note = document.getElementById('advanceNote').value;
+        
+        if (!userId || !amount || !date) {
+          alert('Lütfen tüm zorunlu alanları doldurunuz');
+          return;
+        }
+        
+        await postJSON('/api/personnel/advances/create/', {
+          user_id: userId,
+          amount: amount,
+          date: date,
+          note: note
+        });
+        
+        closeAdvanceModal();
+        await loadData();
+      } catch (err) {
+        console.error('Kayıt başarısız:', err);
+        alert('Kayıt başarısız: ' + err.message);
+      }
+    });
+
+    async function deleteAbsence(id) {
+      if (!confirm('Bu kaydı silmek istediğinizden emin misiniz?')) return;
+      try {
+        await deleteJSON(`/api/personnel/absences/${id}/delete/`);
+        await loadData();
+      } catch (err) {
+        console.error('Silme başarısız:', err);
+        alert('Silme başarısız: ' + err.message);
+      }
+    }
+
+    async function deleteAdvance(id) {
+      if (!confirm('Bu kaydı silmek istediğinizden emin misiniz?')) return;
+      try {
+        await deleteJSON(`/api/personnel/advances/${id}/delete/`);
+        await loadData();
+      } catch (err) {
+        console.error('Silme başarısız:', err);
+        alert('Silme başarısız: ' + err.message);
+      }
+    }
+
+    // Check user permissions and load data
+    (async () => {
+      try {
+        const ures = await fetch('/api/whoami/');
+        const u = await ures.json();
+        const el = document.getElementById('userBox');
+        
+        if (!u.is_authenticated) {
+          window.location.href = '/login/';
+          return;
+        }
+        
+        currentUser = u;
+        isAdmin = u.is_admin;
+        
+        el.innerHTML = `<div class="text-slate-200 font-medium">Kullanıcı: <span class="text-indigo-400">${u.username}</span></div>`;
+        
+        // Show admin sections
+        if (isAdmin) {
+          document.getElementById('adminFilter').classList.remove('hidden');
+          document.getElementById('adminActions').classList.remove('hidden');
+          await loadUsers();
+        }
+        
+        // Load initial data
+        await loadData();
+      } catch (err) {
+        console.error('İlk yükleme hatası:', err);
+      }
+    })();
+  </script>
+</body>
+</html>
+

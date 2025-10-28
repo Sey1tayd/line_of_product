@@ -117,3 +117,36 @@ class MaterialShipment(models.Model):
 
     def __str__(self):
         return f"{self.material_type.name} -{self.boxes_count} kutu ({self.boxes_count * self.units_per_box} adet)"
+
+
+# Personel takip modelleri
+class Absence(models.Model):
+    """Çalışan devamsızlık kayıtları"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="absences")
+    absence_date = models.DateField()
+    reason = models.CharField(max_length=200, blank=True, null=True)
+    note = models.TextField(blank=True, null=True)
+    recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="recorded_absences")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-absence_date"]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.absence_date}"
+
+
+class Advance(models.Model):
+    """Maaştan verilen avanslar"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="advances")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateField()
+    note = models.TextField(blank=True, null=True)
+    recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="recorded_advances")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.amount} TL ({self.date})"

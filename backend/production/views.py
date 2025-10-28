@@ -19,6 +19,8 @@ from .models import (
     MaterialType,
     MaterialEntry,
     MaterialShipment,
+    Absence,
+    Advance,
 )
 from .serializers import (
     MachineDashboardSerializer,
@@ -39,6 +41,10 @@ from .serializers import (
     MaterialShipmentSerializer,
     CreateMaterialEntrySerializer,
     CreateMaterialShipmentSerializer,
+    AbsenceSerializer,
+    CreateAbsenceSerializer,
+    AdvanceSerializer,
+    CreateAdvanceSerializer,
 )
 
 
@@ -502,3 +508,154 @@ def admin_delete_tooltype(request, tooltype_id: int):
     tt = get_object_or_404(ToolType, id=tooltype_id)
     tt.delete()
     return Response(status=204)
+
+
+# Personnel tracking endpoints
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def personnel_absences(request):
+    """
+    Get absences. 
+    - Admins see all absences
+    - Regular users see only their own
+    """
+    user_id = request.query_params.get('user_id')
+    
+    if request.user.is_staff or request.user.is_superuser:
+        # Admin can see all or filter by user
+        if user_id:
+            absences = Absence.objects.filter(user_id=user_id).select_related("user", "recorded_by")
+        else:
+            absences = Absence.objects.all().select_related("user", "recorded_by")
+    else:
+        # Regular users only see their own
+        absences = Absence.objects.filter(user=request.user).select_related("user", "recorded_by")
+    
+    return Response(AbsenceSerializer(absences[:100], many=True).data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_absence(request):
+    """Create absence record. Only admins can create."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return Response({"detail": "Yetki yok"}, status=403)
+    
+    serializer = CreateAbsenceSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    
+    user = get_object_or_404(User, id=serializer.validated_data["user_id"])
+    
+    absence = Absence.objects.create(
+        user=user,
+        absence_date=serializer.validated_data["absence_date"],
+        reason=serializer.validated_data.get("reason", ""),
+        note=serializer.validated_data.get("note", ""),
+        recorded_by=request.user
+    )
+    
+    ActivityLog.objects.create(
+        user=request.user,
+        action="work_session",
+        machine=None,
+        details=f"absence_recorded {user.username} {absence.absence_date}"
+    )
+    
+    return Response(AbsenceSerializer(absence).data, status=201)
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_absence(request, absence_id: int):
+    """Delete absence record. Only admins can delete."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return Response({"detail": "Yetki yok"}, status=403)
+    
+    absence = get_object_or_404(Absence, id=absence_id)
+    absence.delete()
+    return Response(status=204)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def personnel_advances(request):
+    """
+    Get advances.
+    - Admins see all advances
+    - Regular users see only their own
+    """
+    user_id = request.query_params.get('user_id')
+    
+    if request.user.is_staff or request.user.is_superuser:
+        # Admin can see all or filter by user
+        if user_id:
+            advances = Advance.objects.filter(user_id=user_id).select_related("user", "recorded_by")
+        else:
+            advances = Advance.objects.all().select_related("user", "recorded_by")
+    else:
+        # Regular users only see their own
+        advances = Advance.objects.filter(user=request.user).select_related("user", "recorded_by")
+    
+    return Response(AdvanceSerializer(advances[:100], many=True).data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_advance(request):
+    """Create advance record. Only admins can create."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return Response({"detail": "Yetki yok"}, status=403)
+    
+    serializer = CreateAdvanceSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    
+    user = get_object_or_404(User, id=serializer.validated_data["user_id"])
+    
+    advance = Advance.objects.create(
+        user=user,
+        amount=serializer.validated_data["amount"],
+        date=serializer.validated_data["date"],
+        note=serializer.validated_data.get("note", ""),
+        recorded_by=request.user
+    )
+    
+    ActivityLog.objects.create(
+        user=request.user,
+        action="work_session",
+        machine=None,
+        details=f"advance_recorded {user.username} {advance.amount} TL"
+    )
+    
+    return Response(AdvanceSerializer(advance).data, status=201)
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_advance(request, advance_id: int):
+    """Delete advance record. Only admins can delete."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return Response({"detail": "Yetki yok"}, status=403)
+    
+    advance = get_object_or_404(Advance, id=advance_id)
+    advance.delete()
+    return Response(status=204)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def personnel_users(request):
+    """Get list of all users for admin dropdowns"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return Response({"detail": "Yetki yok"}, status=403)
+    
+    users = User.objects.all().order_by('username')
+    return Response([
+        {
+            "id": u.id,
+            "username": u.username,
+            "first_name": u.first_name,
+            "last_name": u.last_name,
+            "full_name": f"{u.first_name} {u.last_name}".strip() or u.username
+        }
+        for u in users
+    ])

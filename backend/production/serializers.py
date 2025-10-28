@@ -10,6 +10,8 @@ from .models import (
     MaterialType,
     MaterialEntry,
     MaterialShipment,
+    Absence,
+    Advance,
 )
 
 
@@ -217,3 +219,50 @@ class CreateToolTypeAdminSerializer(serializers.Serializer):
     machine_id = serializers.IntegerField()
     name = serializers.CharField(max_length=100)
     is_active = serializers.BooleanField(required=False, default=True)
+
+
+# Personnel tracking serializers
+class AbsenceSerializer(serializers.ModelSerializer):
+    user_username = serializers.CharField(source="user.username", read_only=True)
+    user_first_name = serializers.CharField(source="user.first_name", read_only=True)
+    user_last_name = serializers.CharField(source="user.last_name", read_only=True)
+    recorded_by_username = serializers.CharField(source="recorded_by.username", read_only=True)
+
+    class Meta:
+        model = Absence
+        fields = [
+            "id", "user", "user_username", "user_first_name", "user_last_name",
+            "absence_date", "reason", "note", 
+            "recorded_by", "recorded_by_username", "created_at"
+        ]
+        read_only_fields = ["recorded_by", "created_at"]
+
+
+class CreateAbsenceSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    absence_date = serializers.DateField()
+    reason = serializers.CharField(max_length=200, required=False, allow_blank=True)
+    note = serializers.CharField(required=False, allow_blank=True)
+
+
+class AdvanceSerializer(serializers.ModelSerializer):
+    user_username = serializers.CharField(source="user.username", read_only=True)
+    user_first_name = serializers.CharField(source="user.first_name", read_only=True)
+    user_last_name = serializers.CharField(source="user.last_name", read_only=True)
+    recorded_by_username = serializers.CharField(source="recorded_by.username", read_only=True)
+
+    class Meta:
+        model = Advance
+        fields = [
+            "id", "user", "user_username", "user_first_name", "user_last_name",
+            "amount", "date", "note",
+            "recorded_by", "recorded_by_username", "created_at"
+        ]
+        read_only_fields = ["recorded_by", "created_at"]
+
+
+class CreateAdvanceSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    date = serializers.DateField()
+    note = serializers.CharField(required=False, allow_blank=True)

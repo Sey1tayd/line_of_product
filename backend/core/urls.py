@@ -30,4 +30,5 @@ urlpatterns = [
     path('sessions/', ensure_csrf_cookie(TemplateView.as_view(template_name='sessions.html')), name='sessions-page'),
     path('machine/<int:machine_id>/', ensure_csrf_cookie(TemplateView.as_view(template_name='machine_detail.html')), name='machine-detail-page'),
     path('material/<int:material_id>/', ensure_csrf_cookie(TemplateView.as_view(template_name='material_detail.html')), name='material-detail-page'),
+    path('personnel/', ensure_csrf_cookie(TemplateView.as_view(template_name='personnel.html')), name='personnel-page'),
 ]

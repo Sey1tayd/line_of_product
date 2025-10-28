@@ -21,6 +21,13 @@ from .views import (
     material_detail,
     create_material_entry,
     create_material_shipment,
+    personnel_absences,
+    create_absence,
+    delete_absence,
+    personnel_advances,
+    create_advance,
+    delete_advance,
+    personnel_users,
 )
 
 urlpatterns = [
@@ -47,6 +54,14 @@ urlpatterns = [
     path("materials/<int:material_id>/", material_detail, name="material-detail"),
     path("materials/entry/", create_material_entry, name="material-entry"),
     path("materials/shipment/", create_material_shipment, name="material-shipment"),
+    # Personnel endpoints
+    path("personnel/users/", personnel_users, name="personnel-users"),
+    path("personnel/absences/", personnel_absences, name="personnel-absences"),
+    path("personnel/absences/create/", create_absence, name="create-absence"),
+    path("personnel/absences/<int:absence_id>/delete/", delete_absence, name="delete-absence"),
+    path("personnel/advances/", personnel_advances, name="personnel-advances"),
+    path("personnel/advances/create/", create_advance, name="create-advance"),
+    path("personnel/advances/<int:advance_id>/delete/", delete_advance, name="delete-advance"),
 ]
 
 
