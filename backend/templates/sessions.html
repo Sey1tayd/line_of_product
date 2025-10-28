@@ -6,14 +6,15 @@
   <title>Kullanıcı Oturumları</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100">
-  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur px-4 py-3 flex items-center justify-between">
-    <a href="/" class="text-[12px] text-slate-400 hover:text-indigo-300">← Geri</a>
-    <div class="text-lg font-semibold">Kullanıcı Oturumları</div>
-    <div class="text-right text-sm leading-tight" id="userBox"></div>
+<body class="h-full overflow-hidden flex flex-col bg-slate-950 text-slate-100">
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur px-4 py-3 flex items-center justify-between shrink-0">
+    <a href="/" class="text-[12px] text-slate-400 hover:text-indigo-300 transition">← Geri</a>
+    <div class="text-base md:text-lg font-semibold">Kullanıcı Oturumları</div>
+    <div class="text-right text-[11px] md:text-sm leading-tight" id="userBox"></div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+  <main class="flex-1 overflow-y-auto">
+    <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
     <section class="bg-slate-900/60 ring-1 ring-slate-800 rounded-2xl p-4">
       <div class="flex items-center justify-between mb-3">
         <div>
@@ -26,6 +27,7 @@
       </div>
       <div id="logList" class="text-[12px] text-slate-300 space-y-1"></div>
     </section>
+    </div>
   </main>
 
   <script>

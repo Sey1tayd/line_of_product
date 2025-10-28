@@ -28,12 +28,26 @@
       }
     }
   </script>
+  
+  <style>
+    /* Smooth transitions for mobile menu */
+    #mobileSidebar {
+      transition: transform 0.3s ease-in-out;
+    }
+  </style>
 </head>
 
-<body class="h-full min-h-screen flex flex-col bg-slate-950 text-slate-100">
+<body class="h-full overflow-hidden flex flex-col bg-slate-950 text-slate-100">
 
   <!-- ÜST NAVBAR -->
-  <header class="flex items-center justify-between border-b border-slate-800 bg-slate-900/60 backdrop-blur px-4 py-3">
+  <header class="flex items-center justify-between border-b border-slate-800 bg-slate-900/60 backdrop-blur px-4 py-3 shrink-0">
+    <!-- Hamburger Menu Button (Mobile Only) -->
+    <button id="hamburgerBtn" class="md:hidden text-slate-300 hover:text-slate-100 focus:outline-none" onclick="toggleMobileMenu()">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
+    
     <!-- Sol taraf: başlık -->
     <div class="flex flex-col">
       <span class="text-[11px] uppercase tracking-widest text-slate-500 font-medium">
@@ -52,16 +66,19 @@
     <!-- Sağ taraf: kullanıcı -->
     <div class="text-right text-[12px] leading-tight" id="userBox"></div>
   </header>
+  
+  <!-- Mobile Menu Overlay -->
+  <div id="mobileOverlay" class="hidden fixed inset-0 bg-black/60 z-40 md:hidden" onclick="toggleMobileMenu()"></div>
 
-  <div class="flex flex-1 min-h-0">
+  <div class="flex flex-1 overflow-hidden">
 
-    <!-- SOL SİDEBAR -->
-    <aside class="hidden md:flex flex-col w-60 bg-slate-900/80 border-r border-slate-800 text-slate-200">
+    <!-- DESKTOP SİDEBAR -->
+    <aside class="hidden md:flex flex-col w-60 bg-slate-900/80 border-r border-slate-800 text-slate-200 shrink-0">
       <div class="px-4 py-4 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
         Menü
       </div>
 
-      <nav class="flex-1 px-2 space-y-1 text-[13px]">
+      <nav class="flex-1 px-2 space-y-1 text-[13px] overflow-y-auto">
         <a class="flex items-center justify-between rounded-lg px-3 py-2 bg-slate-800/50 ring-1 ring-slate-700 text-slate-100 font-medium">
           <span class="flex items-center gap-2">
             <span class="inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
@@ -100,10 +117,62 @@
       </div>
     </aside>
 
+    <!-- MOBILE SİDEBAR -->
+    <aside id="mobileSidebar" class="md:hidden fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 border-r border-slate-800 text-slate-200 transform -translate-x-full flex flex-col">
+      <div class="flex items-center justify-between px-4 py-4 border-b border-slate-800">
+        <div class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+          Menü
+        </div>
+        <button onclick="toggleMobileMenu()" class="text-slate-400 hover:text-slate-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <nav class="flex-1 px-2 py-2 space-y-1 text-[13px] overflow-y-auto">
+        <a href="/" class="flex items-center justify-between rounded-lg px-3 py-2 bg-slate-800/50 ring-1 ring-slate-700 text-slate-100 font-medium" onclick="toggleMobileMenu()">
+          <span class="flex items-center gap-2">
+            <span class="inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+            Üretim Hattı
+          </span>
+          <span class="text-[10px] text-slate-400 font-normal">Canlı</span>
+        </a>
+
+        <a href="/personnel/" class="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-slate-800/30 hover:ring-1 hover:ring-slate-700 transition" onclick="toggleMobileMenu()">
+          <span class="flex items-center gap-2">
+            <span class="inline-block h-2 w-2 rounded-full bg-indigo-500"></span>
+            Personel Takip
+          </span>
+          <span class="text-[10px] text-slate-500 font-normal">Yeni</span>
+        </a>
+
+        <a id="adminSessionsLinkMobile" href="/sessions/" class="hidden flex items-center justify-between rounded-lg px-3 py-2 hover:bg-slate-800/30 hover:ring-1 hover:ring-slate-700 transition" onclick="toggleMobileMenu()">
+          <span class="flex items-center gap-2">
+            <span class="inline-block h-2 w-2 rounded-full bg-slate-500"></span>
+            Kullanıcı Oturumları
+          </span>
+          <span class="text-[10px] text-slate-500 font-normal">Bugün</span>
+        </a>
+      </nav>
+
+      <div class="mt-auto p-4 text-[11px] text-slate-500 border-t border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="h-7 w-7 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-semibold text-slate-200">
+            SA
+          </div>
+          <div class="flex flex-col leading-tight">
+            <span class="text-slate-300 font-medium text-[12px]">seyit.aydin</span>
+            <span class="text-slate-500 text-[10px]">Vardiya Sorumlusu</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
     <!-- ANA İÇERİK -->
-    <main class="flex-1 flex flex-col min-w-0 bg-slate-900/20">
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-900/20 overflow-y-auto">
       <!-- üst başlık satırı -->
-      <section class="px-4 pt-5 pb-3 border-b border-slate-800">
+      <section class="px-4 pt-5 pb-3 border-b border-slate-800 shrink-0">
         <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <div class="text-[11px] uppercase tracking-widest text-slate-500 font-medium mb-1">
@@ -124,16 +193,12 @@
               alt kısımdaki aksiyon butonlarıyla anında kayıt girebilirsiniz.
             </p>
           </div>
-
-          
         </div>
       </section>
 
       <!-- kartlar grid -->
       <section id="machineGrid" class="p-4 grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
-
         <!-- Buraya JS ile kart basıyoruz -->
-
       </section>
 
       <!-- Materyal Girişleri Panel -->
@@ -160,7 +225,7 @@
       </section>
 
       <!-- footer -->
-      <footer class="text-[11px] text-slate-600 text-center py-6 border-t border-slate-800">
+      <footer class="mt-auto text-[11px] text-slate-600 text-center py-6 border-t border-slate-800 shrink-0">
         © 2025 Üretim Takip Paneli — Dahili Kullanım
       </footer>
     </main>
@@ -262,6 +327,21 @@
   </div>
 
   <script>
+    // Mobile menu toggle
+    function toggleMobileMenu() {
+      const sidebar = document.getElementById('mobileSidebar');
+      const overlay = document.getElementById('mobileOverlay');
+      const isOpen = !sidebar.classList.contains('-translate-x-full');
+      
+      if (isOpen) {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      } else {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+      }
+    }
+
     // Modal kontrolü
     function openModal(id, machineId) {
       document.getElementById(id).classList.remove("hidden");
@@ -316,7 +396,9 @@
         el.innerHTML = `<div class=\"text-slate-200 font-medium\">Kullanıcı: <span class=\"text-indigo-400\">${u.username}</span></div>`;
         if (u.is_admin) {
           const link = document.getElementById('adminSessionsLink');
+          const linkMobile = document.getElementById('adminSessionsLinkMobile');
           if (link) link.classList.remove('hidden');
+          if (linkMobile) linkMobile.classList.remove('hidden');
         }
         window.__currentUserId = u.id;
       } catch {}
